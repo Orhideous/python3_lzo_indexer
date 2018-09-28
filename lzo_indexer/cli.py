@@ -11,7 +11,7 @@ from lzo_indexer import index_lzo_file
 from lzo_indexer.indexer import SUFFIXES
 
 
-def indexer(*, force: bool, extension: str, file_name: str) -> bool:
+def indexer(force: bool, extension: str, file_name: str) -> bool:
     archive = Path(file_name)
     archive_index = archive.with_suffix(archive.suffix + extension)
 

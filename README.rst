@@ -1,7 +1,7 @@
 python3_lzo_indexer
 ===================
 
-.. image:: https://img.shields.io/pypi/pyversions/python3_lzo_indexer
+.. image:: https://img.shields.io/pypi/pyversions/python3_lzo_indexer.svg
     :target: https://pypi.python.org/pypi/python3_lzo_indexer
 .. image:: https://img.shields.io/pypi/v/python3_lzo_indexer.svg
     :target: https://pypi.python.org/pypi/python3_lzo_indexer

@@ -27,7 +27,7 @@ setup(
     ],
     description='Library for indexing LZO compressed files',
     install_requires=requirements,
-    license=Path('LICENSE').read_text(),
+    license="Apache Software License",
     long_description=readme,
     include_package_data=True,
     keywords=['lzo', 'archive', 'indexing'],
@@ -36,7 +36,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/Orhideous/python3-lzo-indexer',
-    version='0.1.0',
+    version='0.2.1',
     zip_safe=False,
     entry_points='''
         [console_scripts]

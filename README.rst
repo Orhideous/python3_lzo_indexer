@@ -1,16 +1,16 @@
 python3_lzo_indexer
 ===================
 
-.. image:: https://img.shields.io/pypi/pyversions/python3-lzo-indexer
-    :target: https://pypi.python.org/pypi/python3-lzo-indexer
-.. image:: https://img.shields.io/pypi/v/python3-lzo-indexer.svg
-    :target: https://pypi.python.org/pypi/python3-lzo-indexer
-.. image:: https://coveralls.io/repos/github/Orhideous/python3-lzo-indexer/badge.svg?branch=master
-    :target: https://coveralls.io/github/Orhideous/python3-lzo-indexer?branch=master
-.. image:: https://img.shields.io/travis/Orhideous/python3-lzo-indexer.svg
-    :target: https://travis-ci.org/Orhideous/python3-lzo-indexer
-.. image:: https://pyup.io/repos/github/Orhideous/python3-lzo-indexer/shield.svg
-    :target: https://pyup.io/repos/github/Orhideous/python3-lzo-indexer/
+.. image:: https://img.shields.io/pypi/pyversions/python3_lzo_indexer
+    :target: https://pypi.python.org/pypi/python3_lzo_indexer
+.. image:: https://img.shields.io/pypi/v/python3_lzo_indexer.svg
+    :target: https://pypi.python.org/pypi/python3_lzo_indexer
+.. image:: https://coveralls.io/repos/github/Orhideous/python3_lzo_indexer/badge.svg?branch=master
+    :target: https://coveralls.io/github/Orhideous/python3_lzo_indexer?branch=master
+.. image:: https://img.shields.io/travis/Orhideous/python3_lzo_indexer.svg
+    :target: https://travis-ci.org/Orhideous/python3_lzo_indexer
+.. image:: https://pyup.io/repos/github/Orhideous/python3_lzo_indexer/shield.svg
+    :target: https://pyup.io/repos/github/Orhideous/python3_lzo_indexer/
 
 
 Python library for indexing block offsets within LZO compressed files.

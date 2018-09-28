@@ -1,72 +1,94 @@
-import unittest
-import lzo_indexer
-from StringIO import StringIO
-from subprocess import Popen, PIPE, STDOUT
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+
+import pytest
+from lzo_indexer.indexer import get_lzo_blocks
+from lzo_indexer.cli import indexer
 
 
-class TestLZOIndexer(unittest.TestCase):
+def test_get_blocks_single_block(small_lzo):
+    index = get_lzo_blocks(small_lzo)
 
-    def test_get_blocks_single_block(self):
-        stream = self._lzo_stream(1)
-        index = lzo_indexer.get_lzo_blocks(stream)
+    block = next(index)
+    assert block == 38
+    with pytest.raises(StopIteration):
+        next(index)
 
-        block = index.next()
-        self.assertEqual(block, 38)
-        with self.assertRaises(StopIteration):
-            index.next()
 
-    def test_get_blocks_multiple_blocks(self):
-        stream = self._lzo_stream(10**6)
-        index = lzo_indexer.get_lzo_blocks(stream)
+def test_get_blocks_multiple_blocks(big_lzo):
+    index = get_lzo_blocks(big_lzo)
 
-        expected_offsets = [38, 1233, 2428, 3623]
-        self.assertEqual(list(index), expected_offsets)
+    expected_offsets = [38, 1233, 2428, 3623]
+    assert expected_offsets == list(index)
 
-    def test_index_lzo_string_single_block(self):
-        string = self._lzo_stream(1).getvalue()
-        index = lzo_indexer.index_lzo_string(string)
 
-        self.assertEqual(index, "\x00\x00\x00\x00\x00\x00\x00\x26")
+def test_index_lzo_file_single_block(small_lzo):
+    with NamedTemporaryFile(suffix=".lzo") as temp:
+        extension = ".index"
+        archive = Path(temp.name)
+        archive_index = archive.with_suffix(archive.suffix + extension)
+        with archive.open(mode="wb") as f:
+            f.write(small_lzo.read())
 
-    def test_index_lzo_string_multiple_blocks(self):
-        string = self._lzo_stream(10**6).getvalue()
-        index = lzo_indexer.index_lzo_string(string)
+        indexer(force=False, extension=extension, file_name=archive.as_posix())
 
-        self.assertEqual(index, "\x00\x00\x00\x00\x00\x00\x00&\x00\x00\x00" \
-                                "\x00\x00\x00\x04\xd1\x00\x00\x00\x00\x00" \
-                                "\x00\t|\x00\x00\x00\x00\x00\x00\x0e'")
+        assert archive_index.exists()
+        assert archive_index.read_bytes() == bytearray([
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x26
+        ])
+        archive_index.unlink()
 
-    def test_index_lzo_file_single_block(self):
-        stream = self._lzo_stream(1)
-        index = StringIO()
 
-        lzo_indexer.index_lzo_file(stream, index)
+def test_skip_existing_index(small_lzo):
+    with NamedTemporaryFile(suffix=".lzo") as temp:
+        extension = ".index"
+        archive = Path(temp.name)
+        archive_index = archive.with_suffix(archive.suffix + extension)
+        archive_index.write_bytes(b'\x00')
+        with archive.open(mode="wb") as f:
+            f.write(small_lzo.read())
 
-        self.assertEqual(index.getvalue(), "\x00\x00\x00\x00\x00\x00\x00\x26")
+        indexer(force=False, extension=extension, file_name=archive.as_posix())
 
-    def test_index_lzo_file_multiple_blocks(self):
-        stream = self._lzo_stream(10**6)
-        index = StringIO()
+        assert archive_index.exists()
+        assert archive_index.read_bytes() == bytearray([0x0])
+        archive_index.unlink()
 
-        lzo_indexer.index_lzo_file(stream, index)
 
-        self.assertEqual(index.getvalue(), "\x00\x00\x00\x00\x00\x00\x00&\x00" \
-                                           "\x00\x00\x00\x00\x00\x04\xd1\x00" \
-                                           "\x00\x00\x00\x00\x00\t|\x00\x00" \
-                                           "\x00\x00\x00\x00\x0e'")
+def test_force_overwrite_existing_index(small_lzo):
+    with NamedTemporaryFile(suffix=".lzo") as temp:
+        extension = ".index"
+        archive = Path(temp.name)
+        archive_index = archive.with_suffix(archive.suffix + extension)
+        archive_index.write_bytes(b'\x00')
+        with archive.open(mode="wb") as f:
+            f.write(small_lzo.read())
 
-    def _lzo_stream(self, length=4096):
-        """Compress a string of null bytes, the length being defined by the
-        argument to this function.
-        """
+        indexer(force=True, extension=extension, file_name=archive.as_posix())
 
-        compressor = Popen(["lzop", "-c"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = compressor.communicate(input="\x00" * length)
+        assert archive_index.exists()
+        assert archive_index.read_bytes() != bytearray([0x0])
+        assert archive_index.read_bytes() == bytearray([
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x26
+        ])
+        archive_index.unlink()
 
-        if stderr:
-            raise Exception("Failed to compress with error %r" % (stderr))
 
-        stream = StringIO(stdout)
-        stream.seek(0)
+def test_index_lzo_file_multiple_blocks(big_lzo):
+    with NamedTemporaryFile(suffix=".lzo") as temp:
+        extension = ".index"
+        archive = Path(temp.name)
+        archive_index = archive.with_suffix(archive.suffix + extension)
+        with archive.open(mode="wb") as f:
+            f.write(big_lzo.read())
 
-        return stream
+        indexer(force=False, extension=extension, file_name=archive.as_posix())
+
+        assert archive_index.exists()
+        assert archive_index.read_bytes() == bytearray([
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x26,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x4, 0xd1,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x9, 0x7c,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xe, 0x27
+        ])
+        archive_index.unlink()
